@@ -1,25 +1,40 @@
 from sqlalchemy.orm import Session
-from app.db.models.prompt_analysis import PromptAnalysis
-from app.schemas.analysis import PromptAnalysisRequest
+import json
+from datetime import datetime
+# Assuming you have a generic log table in your models.base or models.database
+from app.db.models.base import PromptLog 
+from app.schemas.analysis import AnalysisResponse
 
 class AnalysisRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_log(self, request: PromptAnalysisRequest, risk_score: float, decision: str, primary_threat: Optional[str]) -> PromptAnalysis:
-        db_record = PromptAnalysis(
-            source_system=request.source_system,
-            user_id=request.user_id,
-            prompt_text=request.prompt_text,
-            risk_score=risk_score,
-            decision=decision,
-            primary_threat=primary_threat,
-            flagged_entities=[]
+    def save_analysis_log(self, result: AnalysisResponse) -> PromptLog:
+        """Saves the comprehensive ML analysis result to the database."""
+        
+        db_log = PromptLog(
+            timestamp=result.timestamp,
+            source=result.source,
+            original_prompt=result.original_prompt,
+            processed_prompt=result.processed_prompt,
+            risk_score=result.security_decision.risk_score,
+            action_taken=result.security_decision.action,
+            
+            # Convert nested Pydantic models/dicts to JSON strings for storage
+            flags=json.dumps(result.security_decision.flags),
+            score_breakdown=json.dumps(result.security_decision.score_breakdown),
+            classification_data=json.dumps(result.analysis.get("classification", {})),
+            phi_entities_detected=json.dumps(result.analysis.get("entities", [])),
+            
+            latency_ms=result.metrics.get("latency_ms", 0.0)
         )
-        self.db.add(db_record)
+        
+        self.db.add(db_log)
         self.db.commit()
-        self.db.refresh(db_record)
-        return db_record
-
+        self.db.refresh(db_log)
+        
+        return db_log
+        
     def get_recent_logs(self, limit: int = 50):
-        return self.db.query(PromptAnalysis).order_by(PromptAnalysis.timestamp.desc()).limit(limit).all()
+        """Fetches recent threat logs for the ThreatLogs.jsx dashboard."""
+        return self.db.query(PromptLog).order_by(PromptLog.timestamp.desc()).limit(limit).all()

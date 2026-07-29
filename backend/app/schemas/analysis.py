@@ -1,21 +1,41 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from typing import List, Dict, Any, Optional
 from datetime import datetime
-from typing import List, Optional
 
-class PromptAnalysisRequest(BaseModel):
-    prompt_text: str
-    source_system: str = "Web Portal"
-    user_id: str = "anonymous"
+class EntitySchema(BaseModel):
+    entity: str
+    value: str
+    start: int
+    end: int
+    confidence: float
+    source: str
 
-class PromptAnalysisResponse(BaseModel):
-    id: Optional[int] = None
-    timestamp: datetime
-    prompt_text: str
-    source_system: str
-    risk_score: float
-    decision: str
-    primary_threat: Optional[str] = None
-    flagged_entities: List[str] = []
+class ClassificationSchema(BaseModel):
+    category: str
+    confidence: float
+    threat_score: float
+    model_used: str
 
-    class Config:
-        from_attributes = True
+class SimilaritySchema(BaseModel):
+    max_similarity: float
+    matched_benchmark: Optional[str] = None
+    embedding_dimension: int
+
+class SecurityDecisionSchema(BaseModel):
+    risk_score: int
+    action: str
+    flags: List[str]
+    score_breakdown: Dict[str, int]
+
+class AnalysisRequest(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=10000)
+    source: str = Field(default="Web UI")
+
+class AnalysisResponse(BaseModel):
+    original_prompt: str
+    processed_prompt: str
+    source: str
+    analysis: Dict[str, Any]
+    security_decision: SecurityDecisionSchema
+    metrics: Dict[str, Any]
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

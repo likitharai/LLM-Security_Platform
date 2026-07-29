@@ -1,31 +1,43 @@
-from typing import Dict, Any, List
+import torch
+import torch.nn.functional as F
+from typing import Dict, Any
+from app.ai_engine.model_loader import model_registry
 
-class PromptInjectionClassifier:
+class PromptClassifier:
+    """Hugging Face Transformer classifier for Prompt Injections and Jailbreaks."""
+
     def __init__(self):
-        # Common adversarial patterns and their associated risk weights
-        self.injection_signatures = {
-            "ignore previous instructions": 0.95,
-            "you are now in developer mode": 0.98,
-            "jailbreak": 0.90,
-            "system prompt": 0.85,
-            "reveal hidden context": 0.92,
-            "bypass": 0.75,
-            "as an ai language model": 0.50  # Lower risk, often part of standard prompt leakage
-        }
+        self.tokenizer = model_registry.injection_tokenizer
+        self.model = model_registry.injection_model
+        self.device = "cuda" if model_registry.device == 0 else "cpu"
 
-    def predict(self, text: str) -> Dict[str, Any]:
-        """Evaluates text for prompt injection intent."""
-        text_lower = text.lower()
-        max_risk = 0.0
-        flagged_patterns = []
+    def classify(self, prompt: str) -> Dict[str, Any]:
+        inputs = self.tokenizer(
+            prompt,
+            return_tensors="pt",
+            truncation=True,
+            max_length=512
+        ).to(self.device)
 
-        for signature, weight in self.injection_signatures.items():
-            if signature in text_lower:
-                max_risk = max(max_risk, weight)
-                flagged_patterns.append(f"Injection Pattern: '{signature}'")
+        with torch.no_grad():
+            outputs = self.model(**inputs)
+            logits = outputs.logits
+            probabilities = F.softmax(logits, dim=-1)[0]
+
+        # Label 1: Injection/Jailbreak, Label 0: Safe
+        injection_score = float(probabilities[1].item()) if probabilities.shape[0] > 1 else float(probabilities[0].item())
+        injection_score = round(injection_score, 4)
+
+        if injection_score >= 0.75:
+            category = "Prompt Injection / Jailbreak"
+        elif injection_score >= 0.40:
+            category = "Suspicious Intent"
+        else:
+            category = "Safe Query"
 
         return {
-            "is_injection": max_risk > 0.7,
-            "risk_score": max_risk,
-            "patterns": flagged_patterns
+            "category": category,
+            "confidence": round(max(float(probabilities[0]), float(probabilities[1])) if probabilities.shape[0] > 1 else injection_score, 4),
+            "threat_score": injection_score,
+            "model_used": "DeBERTa-v3-Prompt-Injection"
         }

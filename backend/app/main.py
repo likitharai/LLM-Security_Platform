@@ -1,36 +1,24 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from app.api.v1 import router as api_v1_router
 from app.core.config import settings
-from app.api.v1.router import api_router
 
-def create_app() -> FastAPI:
-    app = FastAPI(
-        title=settings.PROJECT_NAME,
-        version="1.0.0",
-        description="Enterprise LLM Guardrail & Security Gateway",
-        openapi_url=f"{settings.API_V1_STR}/openapi.json"
-    )
+app = FastAPI(
+    title="LLM Security Platform API",
+    version="1.0.0",
+    description="Backend API for prompt threat detection, PHI masking, and policy enforcement."
+)
 
-    # Configure Cross-Origin Resource Sharing (CORS) for the frontend
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["http://localhost:5173"],  # Adjust to match your Vite frontend URL
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-    # Mount the v1 API routes
-    app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_v1_router.router, prefix="/api/v1")
 
-    @app.get("/health", tags=["System Health"])
-    async def root_health_check():
-        return {
-            "status": "healthy",
-            "environment": settings.ENVIRONMENT,
-            "version": "1.0.0"
-        }
-
-    return app
-
-app = create_app()
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "service": "llm-security-backend"}

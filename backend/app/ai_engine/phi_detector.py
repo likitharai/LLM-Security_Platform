@@ -1,33 +1,56 @@
 import re
-from typing import Dict, Any, List
+from typing import Dict, List, Any
+from app.ai_engine.model_loader import model_registry
 
 class PHIDetector:
+    """Transformer-powered PHI and PII entity detection and redaction."""
+
+    REGEX_PATTERNS = {
+        "SSN": r"\b\d{3}-\d{2}-\d{4}\b",
+        "PHONE": r"\b(?:\+?1[-. ]?)?\(?\d{3}\)?[-. ]?\d{3}[-. ]?\d{4}\b",
+        "MEDICAL_RECORD_ID": r"\b(?:MRN|RECORD|PATIENT)[\s#:]*([A-Z0-9]{6,10})\b"
+    }
+
     def __init__(self):
-        # Define regex patterns for common PHI/PII
-        self.patterns = {
-            "SSN": r"\b\d{3}-\d{2}-\d{4}\b",
-            "Email": r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",
-            "Phone": r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",
-            "Patient_ID": r"\b(PID|PAT)-\d{5,8}\b",
-        }
+        self.ner_pipeline = model_registry.phi_pipeline
 
-    def analyze(self, text: str) -> Dict[str, Any]:
-        """Scans text for PHI and returns the risk level and flagged entities."""
-        flagged_entities = []
-        risk_score = 0.0
+    def detect(self, text: str) -> List[Dict[str, Any]]:
+        entities = []
 
-        for entity_type, pattern in self.patterns.items():
-            matches = re.findall(pattern, text, re.IGNORECASE)
-            if matches:
-                # Add found entities to our flagged list
-                for match in matches:
-                    flagged_entities.append(f"{entity_type}: {match}")
-                
-                # High risk if any PHI is found
-                risk_score = max(risk_score, 0.85)
+        # Step 1: Neural Transformer Named Entity Recognition
+        ner_results = self.ner_pipeline(text)
+        for entity in ner_results:
+            entities.append({
+                "entity": entity["entity_group"],
+                "value": entity["word"],
+                "start": int(entity["start"]),
+                "end": int(entity["end"]),
+                "confidence": round(float(entity["score"]), 4),
+                "source": "Transformer-NER"
+            })
 
-        return {
-            "has_phi": len(flagged_entities) > 0,
-            "risk_score": risk_score,
-            "entities": flagged_entities
-        }
+        # Step 2: Heuristic Regex Fallbacks for standard IDs
+        for entity_type, pattern in self.REGEX_PATTERNS.items():
+            for match in re.finditer(pattern, text, re.IGNORECASE):
+                # Avoid duplicates if overlapping with Transformer results
+                if not any(e["start"] <= match.start() and e["end"] >= match.end() for e in entities):
+                    entities.append({
+                        "entity": entity_type,
+                        "value": match.group(0),
+                        "start": match.start(),
+                        "end": match.end(),
+                        "confidence": 0.99,
+                        "source": "Regex-Pattern"
+                    })
+
+        return sorted(entities, key=lambda x: x["start"])
+
+    def mask(self, text: str, entities: List[Dict[str, Any]]) -> str:
+        """Redacts detected entities backwards to maintain string offset alignment."""
+        masked_text = text
+        for entity in sorted(entities, key=lambda x: x["start"], reverse=True):
+            placeholder = f"[{entity['entity']}_REDACTED]"
+            masked_text = (
+                masked_text[:entity["start"]] + placeholder + masked_text[entity["end"]:]
+            )
+        return masked_text

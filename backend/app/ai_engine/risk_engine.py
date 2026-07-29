@@ -1,74 +1,66 @@
-from sqlalchemy.orm import Session
-from app.db.models.policy import Policy
-# Import your actual detectors here
-from app.engine.detectors import PHIDetector, PromptInjectionDetector, ToxicityDetector 
+from typing import Dict, List, Any
 
 class RiskEngine:
-    def __init__(self, db: Session):
-        self.db = db
-        self.active_policies = self._load_policies()
+    """Aggregates multi-model telemetry into a unified risk score and policy decision."""
 
-    def _load_policies(self) -> dict:
-        """
-        Fetches all policies from the DB and returns a dictionary of their toggle states.
-        Example output: {'phiMasking': True, 'promptInjection': False, ...}
-        """
-        policies = self.db.query(Policy).all()
-        # Default to True if the DB is empty during initial startup
-        if not policies:
-            return {}
-        return {p.key: p.enabled for p in policies}
+    def __init__(self):
+        # Weighting factors for the final risk calculation
+        self.weights = {
+            "injection_threat": 0.50,
+            "phi_exposure": 0.30,
+            "vector_similarity": 0.20
+        }
 
-    def evaluate_request(self, prompt: str) -> dict:
-        risk_score = 0.0
-        decision = "ALLOWED"
-        modified_prompt = prompt
+    def evaluate(
+        self, 
+        classification: Dict[str, Any], 
+        phi_entities: List[Dict[str, Any]],
+        similarity: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        
+        # 1. Base scores from ML models (normalized 0-100)
+        threat_score = classification.get("threat_score", 0.0) * 100
+        sim_score = similarity.get("max_similarity", 0.0) * 100
+        
+        # Calculate PHI severity based on entity count and confidence
+        phi_score = 0
+        if phi_entities:
+            base_phi_penalty = 40
+            per_entity_penalty = sum([e.get("confidence", 1.0) * 15 for e in phi_entities])
+            phi_score = min(base_phi_penalty + per_entity_penalty, 100)
+
+        # 2. Weighted Aggregation
+        overall_risk = (
+            (threat_score * self.weights["injection_threat"]) +
+            (phi_score * self.weights["phi_exposure"]) +
+            (sim_score * self.weights["vector_similarity"])
+        )
+        overall_risk = min(int(overall_risk), 100)
+
+        # 3. Policy Enforcement Engine
+        action = "Allowed"
         flags = []
 
-        # ---------------------------------------------------------
-        # 1. Privacy & Compliance: PHI Masking
-        # ---------------------------------------------------------
-        # Check if the policy exists and is enabled (defaults to True if missing)
-        if self.active_policies.get('phiMasking', True):
-            phi_result = PHIDetector.analyze(modified_prompt)
-            
-            if phi_result.has_phi:
-                modified_prompt = phi_result.masked_text
-                decision = "MASKED"
-                flags.append("PHI_DETECTED")
-                risk_score += 0.4
+        if overall_risk >= 75 or classification.get("category") == "Prompt Injection / Jailbreak":
+            action = "Blocked"
+            flags.append("High-confidence malicious intent detected.")
+        elif sim_score >= 85:
+            action = "Blocked"
+            flags.append("Matches known adversarial attack vector.")
+        elif phi_entities:
+            action = "Masked"
+            flags.append(f"Detected {len(phi_entities)} sensitive data entities.")
+        elif overall_risk >= 45:
+            action = "Quarantined"
+            flags.append("Suspicious anomalous behavior detected.")
 
-        # ---------------------------------------------------------
-        # 2. Adversarial Threats: Prompt Injection
-        # ---------------------------------------------------------
-        if self.active_policies.get('promptInjection', True):
-            injection_result = PromptInjectionDetector.analyze(modified_prompt)
-            
-            if injection_result.is_injection:
-                # Immediate block - halt further processing
-                return self._build_result(
-                    "BLOCKED", 0.99, ["PROMPT_INJECTION"], modified_prompt
-                )
-
-        # ---------------------------------------------------------
-        # 3. Content Safety: Toxicity
-        # ---------------------------------------------------------
-        if self.active_policies.get('toxicContent', True):
-            toxicity_score = ToxicityDetector.analyze(modified_prompt)
-            
-            if toxicity_score > 0.8: # Threshold for toxicity
-                return self._build_result(
-                    "BLOCKED", 0.85, ["TOXIC_CONTENT"], modified_prompt
-                )
-
-        # Add remaining checks (clinicalData, roleplay, medicalAdvice) following the same pattern...
-
-        return self._build_result(decision, risk_score, flags, modified_prompt)
-
-    def _build_result(self, decision: str, risk_score: float, flags: list, text: str) -> dict:
         return {
-            "decision": decision,
-            "risk_score": round(risk_score, 2),
+            "risk_score": overall_risk,
+            "action": action,
             "flags": flags,
-            "processed_text": text
+            "breakdown": {
+                "classifier_risk": int(threat_score),
+                "phi_risk": int(phi_score),
+                "similarity_risk": int(sim_score)
+            }
         }

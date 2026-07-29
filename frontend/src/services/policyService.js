@@ -1,15 +1,18 @@
 import api from './api';
 
 export const policyService = {
-  // Fetch active policies from backend
   getPolicies: async () => {
-    const response = await api.get('/policies/');
+    const response = await api.get('/policies');
     return response.data;
   },
 
-  // Save updated policy toggles
-  updatePolicies: async (policiesArray) => {
-    const response = await api.put('/policies/', { policies: policiesArray });
+  togglePolicy: async (policyId, enabled) => {
+    const response = await api.patch(`/policies/${policyId}`, { enabled });
+    return response.data;
+  },
+
+  updatePolicy: async (policyId, data) => {
+    const response = await api.put(`/policies/${policyId}`, data);
     return response.data;
   }
 };
