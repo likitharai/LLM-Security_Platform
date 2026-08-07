@@ -6,16 +6,9 @@ export default {
   ],
   theme: {
     extend: {
-      colors: {
-        brand: {
-          50: '#eef2ff',
-          100: '#e0e7ff',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-        }
-      }
+      // You can add custom colors or fonts here later if needed for the dashboard
     },
   },
   plugins: [],
 }
+
