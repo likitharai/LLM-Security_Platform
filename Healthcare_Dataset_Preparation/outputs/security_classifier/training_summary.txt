@@ -1,0 +1,42 @@
+
+========================================
+SECURITY CLASSIFIER TRAINING SUMMARY
+========================================
+
+Model:
+distilbert-base-uncased
+
+Maximum Sequence Length:
+256
+
+Training Samples:
+10059
+
+Validation Samples:
+2306
+
+Test Samples:
+2306
+
+Number of Classes:
+5
+
+Epochs:
+4
+
+Learning Rate:
+2e-05
+
+Batch Size:
+16
+
+Best Validation Macro F1:
+0.8621
+
+Best Validation Accuracy:
+0.9328
+
+Classes:
+{0: 'jailbreak', 1: 'malicious', 2: 'phi', 3: 'safe', 4: 'suspicious'}
+
+========================================

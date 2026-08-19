@@ -1,0 +1,17 @@
+SECURITY CLASSIFIER TEST SET EVALUATION
+==================================================
+
+Test samples: 2306
+Accuracy: 0.9389
+Macro Precision: 0.8640
+Macro Recall: 0.8720
+Macro F1: 0.8673
+Weighted F1: 0.9401
+
+Per-Class Metrics
+--------------------------------------------------
+safe: Precision=0.9759, Recall=0.9765, F1=0.9762
+malicious: Precision=0.8852, Recall=0.8460, F1=0.8652
+phi: Precision=1.0000, Recall=1.0000, F1=1.0000
+jailbreak: Precision=1.0000, Recall=1.0000, F1=1.0000
+suspicious: Precision=0.4587, Recall=0.5376, F1=0.4950

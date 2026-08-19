@@ -1,9 +1,0 @@
-*.pt filter=lfs diff=lfs merge=lfs -text
-*.pth filter=lfs diff=lfs merge=lfs -text
-*.pkl filter=lfs diff=lfs merge=lfs -text
-*.safetensors filter=lfs diff=lfs merge=lfs -text
-Healthcare_Dataset_Preparation/data/raw/*.csv filter=lfs diff=lfs merge=lfs -text
-Healthcare_Dataset_Preparation/data/processed/*.csv filter=lfs diff=lfs merge=lfs -text
-Healthcare_Dataset_Preparation/outputs/**/*.pt filter=lfs diff=lfs merge=lfs -text
-Healthcare_Dataset_Preparation/outputs/**/*.safetensors filter=lfs diff=lfs merge=lfs -text
-Healthcare_Dataset_Preparation/outputs/**/*.pkl filter=lfs diff=lfs merge=lfs -text

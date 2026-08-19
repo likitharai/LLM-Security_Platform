@@ -1,0 +1,12 @@
+,prompt,context,response,source_dataset,prompt_characters,prompt_words,response_characters,response_words,context_characters,context_words
+count,15979,1000,15979,15979,15979.0,15979.0,15979.0,15979.0,15979.0,15979.0
+unique,15979,1000,15461,2,,,,,,
+top,What is (are) Chondrocalcinosis 2 ?,"To assess Internet use amongst young people to determine whether it would be a practical way to provide sex education and information. Year 10 students (aged 14-15 years) from North Nottinghamshire schools were asked to participate in focus groups to discuss the Internet. A series of predefined questions were directed to the whole group to generate debate. Areas explored included: Internet access and site; frequency and purpose of Internet use; websites visited; ideas for a genitourinary medicine (GUM) website. Responses were recorded by a hand count or as individual verbal responses. Thirteen focus groups were held involving 287 students of approximately equal sex distribution. All had access to Internet facilities at school and 224 (78.0%) had access elsewhere. Access was at least once a week by 178 (62.0%) mostly for e-mail, games, chatlines and homework. No one accessed for health information. One hundred and seventy-nine (62.4%) participants said they would use a GUM website. A 'question line' where they could e-mail questions to a health care professional was of interest to 202 (70.4%) participants.","This condition is inherited in an autosomal recessive pattern, which means both copies of the gene in each cell have mutations. The parents of an individual with an autosomal recessive condition each carry one copy of the mutated gene, but they typically do not show signs and symptoms of the condition.",MedQuAD,,,,,,
+freq,1,1,339,14979,,,,,,
+mean,,,,,54.29551286062958,8.57575567932912,1223.2486388384755,188.72876900932474,83.9391701608361,12.529382314287503
+std,,,,,20.58310168244701,2.7373789826156054,1621.110694026016,243.238080294596,336.1118890448217,50.19659495061982
+min,,,,,16.0,3.0,6.0,1.0,0.0,0.0
+25%,,,,,40.0,7.0,422.0,61.0,0.0,0.0
+50%,,,,,51.0,8.0,818.0,127.0,0.0,0.0
+75%,,,,,64.0,10.0,1526.0,245.0,0.0,0.0
+max,,,,,213.0,31.0,29046.0,4281.0,2725.0,398.0

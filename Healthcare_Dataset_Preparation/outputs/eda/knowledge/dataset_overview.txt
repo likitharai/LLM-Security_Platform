@@ -1,0 +1,17 @@
+======================================================================
+KNOWLEDGE BASE OVERVIEW
+======================================================================
+
+Shape : (15979, 4)
+
+Columns
+prompt
+context
+response
+source_dataset
+
+prompt            object
+context           object
+response          object
+source_dataset    object
+dtype: object

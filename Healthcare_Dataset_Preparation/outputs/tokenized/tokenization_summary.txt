@@ -1,0 +1,25 @@
+
+========================================
+TOKENIZATION SUMMARY
+========================================
+
+Tokenizer : DistilBERT Base Uncased
+
+Training Samples : 10059
+
+Validation Samples : 2306
+
+Testing Samples : 2306
+
+Maximum Sequence Length : 128
+
+Classes
+
+        Class  Encoded Label
+0   jailbreak              0
+1   malicious              1
+2         phi              2
+3        safe              3
+4  suspicious              4
+
+========================================

@@ -1,0 +1,50 @@
+==================================================
+Security Dataset Summary
+==================================================
+
+Train Shape : (11463, 8)
+Validation Shape : (2369, 6)
+Test Shape : (2370, 6)
+
+Attack Distribution
+attack_type
+safe          6313
+malicious     2874
+jailbreak      815
+phi            800
+suspicious     661
+Name: count, dtype: int64
+
+Source Distribution
+source_dataset
+MPIB                   7759
+MedQuAD                1000
+Synthetic-Jailbreak     815
+Synthetic-PHI           800
+Synthetic-General       789
+PubMedQA                300
+Name: count, dtype: int64
+
+Severity Distribution
+severity
+0    6313
+3    3774
+4     715
+2     554
+1     107
+Name: count, dtype: int64
+
+Missing Values
+prompt            0
+attack_type       0
+severity          0
+is_safe           0
+phi_present       0
+source_dataset    0
+characters        0
+words             0
+dtype: int64
+
+Duplicate Prompts : 1404
+Average Words : 84.61
+Average Characters : 541.93

@@ -1,0 +1,6 @@
+attack_type,label
+safe,0
+malicious,1
+phi,2
+jailbreak,3
+suspicious,4

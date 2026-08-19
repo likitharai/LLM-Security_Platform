@@ -5,10 +5,6 @@ __pycache__/
 .venv/
 venv/
 
-# Model training outputs
-Healthcare_Dataset_Preparation/outputs/
-datasets/processed/
-
 # Model files
 *.pt
 *.pth
