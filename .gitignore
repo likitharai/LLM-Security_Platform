@@ -1,0 +1,29 @@
+@"
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Model training outputs
+Healthcare_Dataset_Preparation/outputs/
+Healthcare_Dataset_Preparation/data/raw/
+Healthcare_Dataset_Preparation/data/processed/
+datasets/processed/
+
+# Model files
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.pkl
+
+# Tokenized datasets
+*encodings.pt
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+"@ | Out-File -Encoding utf8 .gitignore
