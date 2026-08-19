@@ -8,7 +8,6 @@ venv/
 # Model training outputs
 Healthcare_Dataset_Preparation/outputs/
 Healthcare_Dataset_Preparation/data/raw/
-Healthcare_Dataset_Preparation/data/processed/
 datasets/processed/
 
 # Model files
